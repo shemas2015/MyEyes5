@@ -18,6 +18,7 @@ import org.opencv.imgproc.Imgproc;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 
 abstract class Imagen {
 
@@ -238,5 +239,27 @@ abstract class Imagen {
 
     public void setBlockSize(int blockSize) {
         this.blockSize = blockSize;
+    }
+
+
+    protected String getPath(String path){
+        File f = new File(this.mainActivity.getCacheDir()+"/"+path);
+        if (!f.exists()) try {
+
+            InputStream is = this.mainActivity.getAssets().open(path);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(buffer);
+            fos.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return f.getPath();
+
     }
 }

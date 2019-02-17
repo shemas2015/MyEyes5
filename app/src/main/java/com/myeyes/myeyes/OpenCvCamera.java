@@ -109,8 +109,16 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
         this.setPermisos();
 
 
+
+
+ /*
         String proto = "/sdcard/MobileNetSSD_deploy.prototxt";
         String weights = "/sdcard/MobileNetSSD_deploy.caffemodel";
+*/
+
+        String proto = getPath("MobileNetSSD_deploy.prototxt");
+        String weights = getPath("MobileNetSSD_deploy.caffemodel");
+
 
 
 
@@ -208,6 +216,9 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
     }
+
+
+
 
 
 }

@@ -28,9 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
-
         /*
 
 
@@ -40,9 +37,9 @@ public class MainActivity extends AppCompatActivity {
         }else{
             Toast.makeText(getApplicationContext(),"No Cargó OpenCV",Toast.LENGTH_LONG).show();
         }
+
+
          */
-
-
 
         OpenCvCamera camera = new OpenCvCamera(this);
         camera.iniciar();
