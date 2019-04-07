@@ -3,8 +3,11 @@ package com.myeyes.myeyes;
 import android.Manifest;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
+import android.speech.tts.TextToSpeech;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,8 +15,9 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
 
 import java.io.File;
+import java.util.Locale;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
 
 
@@ -32,31 +36,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        /*
 
 
 
-        if(OpenCVLoader.initDebug()){
-            Toast.makeText(getApplicationContext(),"Cargó OpenCV",Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(getApplicationContext(),"No Cargó OpenCV",Toast.LENGTH_LONG).show();
-        }
 
-
-         */
 
         OpenCvCamera camera = new OpenCvCamera(this);
         camera.iniciar();
 
-        /*
-        OpenCvStorage open = new OpenCvStorage(this);
-        for(int i =1;i<=4;i++){
-            open.setNumDisparity(16*i);
-            open.setBlockSize((5-i)*i);
-            Mat disparity = open.disparityMap();
-            open.SaveImage(disparity,"img_"+i);
-        }
-         */
 
 
 
@@ -95,4 +82,7 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("native-lib");
         System.loadLibrary("opencv_java3");
     }
+
+
+
 }

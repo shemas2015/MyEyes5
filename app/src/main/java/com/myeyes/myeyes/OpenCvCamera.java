@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.Toast;
@@ -38,6 +39,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
     CameraBridgeViewBase cameraBridgeViewBase;
     Scalar scalarLow, scalarHight;
     MainActivity mainActivity = null;
+    boolean tmp = true;
 
 
     BaseLoaderCallback baseLoaderCallback;
@@ -46,14 +48,18 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
     private static final String TAG = "OpenCV/Sample/MobileNet";
+
+
     private static final String[] classNames = {"background",
-            "aeroplane", "bicycle", "bird", "boat",
-            "bottle", "bus", "car", "cat", "chair",
-            "cow", "diningtable", "dog", "horse",
-            "motorbike", "person", "pottedplant",
-            "sheep", "sofa", "train", "tvmonitor"};
+            "aeroplane", "bicycle", "bird", "boat","bottle", "bus",
+            "car", "cat", "chair","cow", "diningtable","dog", "horse",
+            "motorbike", "person", "pottedplant","sheep", "sofa", "train", "tvmonitor"};
     private Net net;
     private CameraBridgeViewBase mOpenCvCameraView;
+
+
+    Sonido sonido;
+    Audio audio = null;
 
     public OpenCvCamera(MainActivity mainActivity) {
         super(mainActivity);
@@ -64,6 +70,14 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
             this.mainActivity.requestPermissions(new String[]{Manifest.permission.CAMERA},
                     MY_CAMERA_REQUEST_CODE);
         }
+        //sonido = new Sonido(mainActivity);
+
+
+        audio = new Audio(mainActivity);
+
+
+
+
 
     }
 
@@ -188,8 +202,16 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
             double confidence = detections.get(i, 2)[0];
 
 
+            if(this.tmp){
+                //Toast.makeText(this.mainActivity.getApplicationContext() ,"Solo una vez",Toast.LENGTH_LONG).show();
+                System.out.println("Error: solo una vez");
+                this.tmp = false;
+            }
+
+
 
             if (confidence > THRESHOLD) {
+                //sonido.start();
                 int classId = (int)detections.get(i, 1)[0];
                 int xLeftBottom = (int)(detections.get(i, 3)[0] * cols);
                 int yLeftBottom = (int)(detections.get(i, 4)[0] * rows);
@@ -199,7 +221,13 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
                 Imgproc.rectangle(subFrame, new Point(xLeftBottom, yLeftBottom),
                         new Point(xRightTop, yRightTop),
                         new Scalar(0, 255, 0));
+
+
+
                 String label = classNames[classId] + ": " + confidence;
+
+                audio.leer(classNames[classId]);
+
                 int[] baseLine = new int[1];
                 Size labelSize = Imgproc.getTextSize(label, Core.FONT_HERSHEY_SIMPLEX, 0.5, 1, baseLine);
                 // Draw background for label.
