@@ -34,13 +34,6 @@ public class MainActivity extends AppCompatActivity{
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
 
-
-
-
-
-
-
-
         OpenCvCamera camera = new OpenCvCamera(this);
         camera.iniciar();
 
