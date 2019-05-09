@@ -1,24 +1,23 @@
 package com.myeyes.myeyes;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.ContentValues;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.net.Uri;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.speech.tts.TextToSpeech;
-import android.util.Log;
 import android.view.SurfaceView;
 import android.widget.Toast;
+
+import com.myeyes.myeyes.entidades.Database;
+import com.myeyes.myeyes.entidades.Obstaculo;
+
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
 import org.opencv.core.Core;
-import org.opencv.core.CvException;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -27,12 +26,11 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCameraViewListener2  {
 
@@ -40,7 +38,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
     Scalar scalarLow, scalarHight;
     MainActivity mainActivity = null;
     boolean tmp = true;
-
+    SQLiteDatabase db;
 
     BaseLoaderCallback baseLoaderCallback;
     private static final int MY_CAMERA_REQUEST_CODE = 100;
@@ -48,41 +46,62 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
     private static final String TAG = "OpenCV/Sample/MobileNet";
-
+    private Date espera =null;
 
     private static final String[] classNames = {"background",
             "aeroplane", "bicycle", "bird", "boat","bottle", "bus",
             "car", "cat", "chair","cow", "diningtable","dog", "horse",
             "motorbike", "person", "pottedplant","sheep", "sofa", "train", "tvmonitor"};
+
+
+
+    private Map<String, Obstaculo> obstaculos = new HashMap<String, Obstaculo>();
+
+
+
     private Net net;
     private CameraBridgeViewBase mOpenCvCameraView;
 
 
-    Sonido sonido;
+
     Audio audio = null;
 
     public OpenCvCamera(MainActivity mainActivity) {
         super(mainActivity);
         this.mainActivity = mainActivity;
+        espera = Calendar.getInstance().getTime();
+
+        //DB
+        this.db = new Database(mainActivity.getApplicationContext()).getWritableDatabase() ;
+
+        //Crea lista de objetos
+        obstaculos.put("car",new Obstaculo("car",mainActivity));
+        obstaculos.put("aeroplane",new Obstaculo("aeroplane",mainActivity));
+        obstaculos.put("bicycle",new Obstaculo("bicycle",mainActivity));
+        obstaculos.put("boat",new Obstaculo("boat",mainActivity));
+        obstaculos.put("bottle",new Obstaculo("bottle",mainActivity));
+        obstaculos.put("chair",new Obstaculo("chair",mainActivity));
+        obstaculos.put("diningtable",new Obstaculo("diningtable",mainActivity));
+        obstaculos.put("dog",new Obstaculo("dog",mainActivity));
+        obstaculos.put("motorbike",new Obstaculo("motorbike",mainActivity));
+        obstaculos.put("person",new Obstaculo("person",mainActivity));
+        obstaculos.put("train",new Obstaculo("train",mainActivity));
+
+
+
 
         if (this.mainActivity.checkSelfPermission(Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             this.mainActivity.requestPermissions(new String[]{Manifest.permission.CAMERA},
                     MY_CAMERA_REQUEST_CODE);
         }
-        //sonido = new Sonido(mainActivity);
-
-
         audio = new Audio(mainActivity);
-
-
-
-
 
     }
 
 
     public void iniciar(){
+
 
         cameraBridgeViewBase = (JavaCameraView) this.mainActivity.findViewById(R.id.myCameraView);
         cameraBridgeViewBase.setVisibility(SurfaceView.VISIBLE);
@@ -155,7 +174,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
         final float WH_RATIO = (float)IN_WIDTH / IN_HEIGHT;
         final double IN_SCALE_FACTOR = 0.007843;
         final double MEAN_VAL = 127.5;
-        final double THRESHOLD = 0.2;
+        final double THRESHOLD = 0.8;
         // Get a new frame
         Mat frame = inputFrame.rgba();
 
@@ -202,17 +221,21 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
             double confidence = detections.get(i, 2)[0];
 
 
-            if(this.tmp){
-                //Toast.makeText(this.mainActivity.getApplicationContext() ,"Solo una vez",Toast.LENGTH_LONG).show();
-                System.out.println("Error: solo una vez");
-                this.tmp = false;
-            }
 
 
 
-            if (confidence > THRESHOLD) {
-                //sonido.start();
-                int classId = (int)detections.get(i, 1)[0];
+            int classId = (int)detections.get(i, 1)[0];
+            Obstaculo obstaculoTmp = null ;
+
+            try{
+                obstaculoTmp = obstaculos.get(classNames[classId]);
+            }catch (Exception e){}
+
+
+
+
+            if (confidence > THRESHOLD &&  obstaculoTmp  != null
+                    && this.verifica(classNames[classId] )) {
                 int xLeftBottom = (int)(detections.get(i, 3)[0] * cols);
                 int yLeftBottom = (int)(detections.get(i, 4)[0] * rows);
                 int xRightTop   = (int)(detections.get(i, 5)[0] * cols);
@@ -226,7 +249,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
                 String label = classNames[classId] + ": " + confidence;
 
-                audio.leer(classNames[classId]);
+                audio.leer(obstaculoTmp.getNombre());
 
                 int[] baseLine = new int[1];
                 Size labelSize = Imgproc.getTextSize(label, Core.FONT_HERSHEY_SIMPLEX, 0.5, 1, baseLine);
@@ -238,9 +261,42 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
                 Imgproc.putText(subFrame, label, new Point(xLeftBottom, yLeftBottom),
                         Core.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 0, 0));
             }
+
         }
 
         return frame;
+
+    }
+
+
+    /**
+     * Verifica si ha pasando al menos un segundo desde la última vez que detectó un obstáculo
+     *  para no saturar de detecciones la escena
+     * @return
+     */
+    private boolean verifica(String clase){
+
+
+
+        Date ahora = Calendar.getInstance().getTime();
+        float tiempo = (ahora.getTime() -espera.getTime()) / 1000;
+        if(tiempo > 1){
+            this.espera = ahora;
+            return true;
+            //Verifica si el objeto de la clase existe
+            /*
+            for(int i =0 ; i < obstaculos.size() ; i++ ){
+                if(obstaculos.get(i).getClass_name().equals(clase)){
+                    return  obstaculos.get(i);
+                }
+            }
+            */
+
+        }
+
+
+        return false;
+
 
 
     }

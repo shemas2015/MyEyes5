@@ -12,10 +12,9 @@ import java.util.Locale;
 public class Audio implements TextToSpeech.OnInitListener {
     MainActivity activity= null;
     private TextToSpeech tts;
-    private Date espera =null;
+
 
     public Audio(MainActivity activity){
-        espera = Calendar.getInstance().getTime();
         this.activity = activity;
         tts = new TextToSpeech(activity,this);
     }
@@ -36,15 +35,15 @@ public class Audio implements TextToSpeech.OnInitListener {
         }
     }
 
+
+
+
     public void leer(String txt){
-        Date ahora = Calendar.getInstance().getTime();
-        float tiempo = (ahora.getTime() -espera.getTime()) / 1000;
-        String text = txt;
-        if(tiempo > 2){
-            tts.speak(text,TextToSpeech.QUEUE_FLUSH,null,null);
-            this.espera = ahora;
-        }
+        tts.speak(txt,TextToSpeech.QUEUE_FLUSH,null,null);
 
     }
+
+
+
 
 }
