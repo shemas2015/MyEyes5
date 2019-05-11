@@ -26,6 +26,7 @@ public class Database extends SQLiteOpenHelper {
         db.execSQL("CREATE TABLE obstaculo (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "id_objeto  INTEGER," +
+                 "fecha DATETIME ," +
                 "longitud TEXT," +
                 "latitud TEXT)"
                 );

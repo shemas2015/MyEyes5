@@ -31,7 +31,9 @@ public class Objeto {
 
         cursor.moveToFirst();
         this.nombre = cursor.getString(cursor.getColumnIndex("nombre"));
-        this.id = cursor.getColumnIndex("id");
+        this.id = cursor.getInt(cursor.getColumnIndex("id")) ;
+
+        System.out.println("El id del objeto es "+this.id);
 
     }
 

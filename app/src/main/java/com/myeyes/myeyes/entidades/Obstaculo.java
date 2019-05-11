@@ -5,6 +5,9 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.myeyes.myeyes.MainActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Obstaculo {
     private Database conn;
     private int idObjeto;
@@ -30,9 +33,13 @@ public class Obstaculo {
      * Almacena un nuevo obstaculo
      */
     public void guardar(){
+        SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date date = new Date(System.currentTimeMillis());
+
         ContentValues contentValues = new ContentValues();
         contentValues.put("id_objeto",this.idObjeto);
         contentValues.put("latitud",this.latitud);
+        contentValues.put("fecha", formatter.format(date) );
         contentValues.put("longitud",this.longitud);
 
         this.db.insert("obstaculo","id",contentValues);

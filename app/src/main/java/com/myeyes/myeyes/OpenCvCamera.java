@@ -1,8 +1,11 @@
 package com.myeyes.myeyes;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
@@ -62,6 +65,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
     Audio audio = null;
+    Localizacion localizacion = null;
 
     public OpenCvCamera(MainActivity mainActivity) {
         super(mainActivity);
@@ -86,12 +90,21 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
 
-
+        //Permisos de la cámara
         if (this.mainActivity.checkSelfPermission(Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             this.mainActivity.requestPermissions(new String[]{Manifest.permission.CAMERA},
                     MY_CAMERA_REQUEST_CODE);
+
+            //Inicia la actividad nuevamente
+            this.mainActivity.finish();
+            this.mainActivity.startActivity(this.mainActivity.getIntent());
         }
+
+        localizacion = new Localizacion(this.mainActivity);
+
+
+
         audio = new Audio(mainActivity);
 
     }
@@ -136,15 +149,6 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
     @Override
     public void onCameraViewStarted(int width, int height) {
 
-        this.setPermisos();
-
-
-
-
- /*
-        String proto = "/sdcard/MobileNetSSD_deploy.prototxt";
-        String weights = "/sdcard/MobileNetSSD_deploy.caffemodel";
-*/
 
         String proto = getPath("MobileNetSSD_deploy.prototxt");
         String weights = getPath("MobileNetSSD_deploy.caffemodel");
@@ -171,7 +175,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
         final float WH_RATIO = (float)IN_WIDTH / IN_HEIGHT;
         final double IN_SCALE_FACTOR = 0.007843;
         final double MEAN_VAL = 127.5;
-        final double THRESHOLD = 0.8;
+        final double THRESHOLD = 0.95;
         // Get a new frame
         Mat frame = inputFrame.rgba();
 
@@ -212,13 +216,8 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
 
-
-
         for (int i = 0; i < detections.rows(); ++i) {
             double confidence = detections.get(i, 2)[0];
-
-
-
 
 
             int classId = (int)detections.get(i, 1)[0];
@@ -246,10 +245,16 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
                 String label = classNames[classId] + ": " + confidence;
 
-                audio.leer(objetoTmp.getNombre());
+                audio.leer(objetoTmp.getNombre()+(int)(confidence*100)+"%" );
+
+
+                //Obtiene coordenadas
+
 
                 //almacena en la db
-                Obstaculo obstaculo = new Obstaculo(objetoTmp.getId(),"1,e22","4,32423",mainActivity);
+                System.out.println(localizacion);
+
+                Obstaculo obstaculo = new Obstaculo(objetoTmp.getId(),""+localizacion.getLongitud(),""+localizacion.getLatitud(),mainActivity);
                 obstaculo.guardar();
 
                 int[] baseLine = new int[1];
