@@ -1,57 +1,40 @@
 package com.myeyes.myeyes.entidades;
 
-import android.database.Cursor;
+import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.myeyes.myeyes.MainActivity;
 
 public class Obstaculo {
-    private int id;
-    private String class_name;
     private Database conn;
+    private int idObjeto;
+    private String longitud;
+    private String latitud;
     private MainActivity mainActivity;
+    SQLiteDatabase db;
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    private String nombre;
-
-
-    public Obstaculo(String class_name, MainActivity mainActivity) {
+    public Obstaculo(int idObjeto, String longitud, String latitud, MainActivity mainActivity) {
         this.mainActivity = mainActivity;
         conn= new Database(mainActivity.getApplicationContext());
 
         //Consulta los parámetros
-        SQLiteDatabase db = conn.getReadableDatabase();
-        String[] parametros = {class_name};
-        String[] campos = {"nombre"};
+        db = conn.getReadableDatabase();
 
-        Cursor cursor = db.query("objeto",campos,"class_name =?",parametros,null,null,null);
 
-        cursor.moveToFirst();
-        this.nombre = cursor.getString(cursor.getColumnIndex("nombre"));
+        this.idObjeto = idObjeto;
+        this.longitud = longitud;
+        this.latitud = latitud;
     }
 
+    /**
+     * Almacena un nuevo obstaculo
+     */
+    public void guardar(){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put("id_objeto",this.idObjeto);
+        contentValues.put("latitud",this.latitud);
+        contentValues.put("longitud",this.longitud);
 
-
-
-
-    public int getId() {
-        return id;
+        this.db.insert("obstaculo","id",contentValues);
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getClass_name() {
-        return class_name;
-    }
-
-    public void setClass_name(String class_name) {
-        this.class_name = class_name;
-    }
-
-
 }

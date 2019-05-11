@@ -1,15 +1,13 @@
 package com.myeyes.myeyes;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.speech.tts.TextToSpeech;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
 import com.myeyes.myeyes.entidades.Database;
+import com.myeyes.myeyes.entidades.Objeto;
 import com.myeyes.myeyes.entidades.Obstaculo;
 
 
@@ -26,7 +24,6 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -55,7 +52,7 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
 
-    private Map<String, Obstaculo> obstaculos = new HashMap<String, Obstaculo>();
+    private Map<String, Objeto> obstaculos = new HashMap<String, Objeto>();
 
 
 
@@ -75,17 +72,17 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
         this.db = new Database(mainActivity.getApplicationContext()).getWritableDatabase() ;
 
         //Crea lista de objetos
-        obstaculos.put("car",new Obstaculo("car",mainActivity));
-        obstaculos.put("aeroplane",new Obstaculo("aeroplane",mainActivity));
-        obstaculos.put("bicycle",new Obstaculo("bicycle",mainActivity));
-        obstaculos.put("boat",new Obstaculo("boat",mainActivity));
-        obstaculos.put("bottle",new Obstaculo("bottle",mainActivity));
-        obstaculos.put("chair",new Obstaculo("chair",mainActivity));
-        obstaculos.put("diningtable",new Obstaculo("diningtable",mainActivity));
-        obstaculos.put("dog",new Obstaculo("dog",mainActivity));
-        obstaculos.put("motorbike",new Obstaculo("motorbike",mainActivity));
-        obstaculos.put("person",new Obstaculo("person",mainActivity));
-        obstaculos.put("train",new Obstaculo("train",mainActivity));
+        obstaculos.put("car",new Objeto("car",mainActivity));
+        obstaculos.put("aeroplane",new Objeto("aeroplane",mainActivity));
+        obstaculos.put("bicycle",new Objeto("bicycle",mainActivity));
+        obstaculos.put("boat",new Objeto("boat",mainActivity));
+        obstaculos.put("bottle",new Objeto("bottle",mainActivity));
+        obstaculos.put("chair",new Objeto("chair",mainActivity));
+        obstaculos.put("diningtable",new Objeto("diningtable",mainActivity));
+        obstaculos.put("dog",new Objeto("dog",mainActivity));
+        obstaculos.put("motorbike",new Objeto("motorbike",mainActivity));
+        obstaculos.put("person",new Objeto("person",mainActivity));
+        obstaculos.put("train",new Objeto("train",mainActivity));
 
 
 
@@ -225,16 +222,16 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
 
             int classId = (int)detections.get(i, 1)[0];
-            Obstaculo obstaculoTmp = null ;
+            Objeto objetoTmp = null ;
 
             try{
-                obstaculoTmp = obstaculos.get(classNames[classId]);
+                objetoTmp = obstaculos.get(classNames[classId]);
             }catch (Exception e){}
 
 
 
 
-            if (confidence > THRESHOLD &&  obstaculoTmp  != null
+            if (confidence > THRESHOLD &&  objetoTmp != null
                     && this.verifica(classNames[classId] )) {
                 int xLeftBottom = (int)(detections.get(i, 3)[0] * cols);
                 int yLeftBottom = (int)(detections.get(i, 4)[0] * rows);
@@ -249,7 +246,11 @@ public class OpenCvCamera extends Imagen  implements CameraBridgeViewBase.CvCame
 
                 String label = classNames[classId] + ": " + confidence;
 
-                audio.leer(obstaculoTmp.getNombre());
+                audio.leer(objetoTmp.getNombre());
+
+                //almacena en la db
+                Obstaculo obstaculo = new Obstaculo(objetoTmp.getId(),"1,e22","4,32423",mainActivity);
+                obstaculo.guardar();
 
                 int[] baseLine = new int[1];
                 Size labelSize = Imgproc.getTextSize(label, Core.FONT_HERSHEY_SIMPLEX, 0.5, 1, baseLine);

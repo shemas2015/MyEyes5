@@ -23,6 +23,13 @@ public class Database extends SQLiteOpenHelper {
                 "class_name  TEXT UNIQUE," +
                 "nombre TEXT)");
 
+        db.execSQL("CREATE TABLE obstaculo (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "id_objeto  INTEGER," +
+                "longitud TEXT," +
+                "latitud TEXT)"
+                );
+
         ContentValues values = new ContentValues();
 
         values.put("class_name","car");
